@@ -14,6 +14,7 @@ var http = require('http');
 var IRC = require('irc-js');
 
 var channels = ['#radiocicletta'/*, '#other'*/];
+var goodguys = ['leonardo', 'cassapanco', 'autoscatto', 'Biappi'];
 var users = {};
 
 var schedule = {events:[]};
@@ -28,7 +29,7 @@ var ircconn = new IRC({
 
 // these handlers are allowed to reply in rooms and/or in query
 var cmdhandlers = {
-    muori   : function() { ircconn.disconnect(); clearInterval(scheduleid); clearTimeout(remainderid)},
+    muori   : function(respchan) {  ircconn.disconnect(); clearInterval(scheduleid); clearTimeout(remainderid)},
     help    : function(respchan) { 
                     this.privmsg(respchan, "Per chiedermi qualcosa, usa un comando" +
                             " preceduto da una chiocciola (ad" +
@@ -66,6 +67,7 @@ var cmdhandlers = {
                     var msg = "Ora in onda: " + (today.length ? today[0].title.replace(/<\/*[^>]*>/g, ''): "Musica no stop");
                     this.privmsg(respchan, msg);
                 },
+    dillo   : function(respchan) {}
 };
 
 // these handlers are allowed to reply only in query
@@ -172,7 +174,6 @@ var remainderid = null;
                 return el.start[0] === day && 
                         (el.end[1] >= now.getHours() && (!el.end[2] || el.end[2] >= now.getMinutes()))
             }).sort(function(a,b) {return a.start[1] > b.start[1] || (a.start[1] === b.start[1] && (a.start[2] || 0) > (b.start[2] ||0))});
-        console.log(today);
 
         if (today.length)
             channels.forEach(function(el, idx, ar){
@@ -185,7 +186,6 @@ var remainderid = null;
         to.setMinutes(50);
         to.setSeconds(0);
         var delay = (to > now? to - now: 3600000 + to.getTime() - now.getTime());
-        console.log("next tick in " + delay + "millisecs");
         
         remainderid = setTimeout(loop, delay);
     }
