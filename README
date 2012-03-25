@@ -1,3 +1,15 @@
 A simple bot written in javascript for node.js
 
 requires node.js and irc-js module
+
+
+to start the bot:
+
+    $ node radiocicoso.js
+
+to install it as a permanent service:
+
+    a) $ nohup node radiocicoso.js
+
+    b) $ [sudo] npm install forever
+       $ forever start radiocicoso.js
