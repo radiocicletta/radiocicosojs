@@ -13,10 +13,10 @@ const kIRCServerPort    = 6667;
 var http = require('http');
 var IRC = require('irc-js');
 
-var channels = [/*'#informateci',*/ '#radiocicletta'];
+var channels = ['#radiocibletta'/*, '#other'*/];
 var users = {};
 
-var schedule = '';
+var schedule = {events:[]};
 var onair    = '';
 
 var ircconn = new IRC({
@@ -28,7 +28,7 @@ var ircconn = new IRC({
 
 // these handlers are allowed to reply in rooms and/or in query
 var cmdhandlers = {
-    muori   : function() { ircconn.disconnect(); clearInterval(scheduleid);},
+    muori   : function() { ircconn.disconnect(); clearInterval(scheduleid); clearTimeout(remainderid)},
     help    : function(respchan) { 
                     this.privmsg(respchan, "Per chiedermi qualcosa, usa un comando" +
                             " preceduto da una chiocciola (ad" +
@@ -150,8 +150,46 @@ function updateschedule() {
         });
 }
 
+function remainderschedule() {
+    
+}
+
 updateschedule();
 var scheduleid = setInterval(updateschedule, 43200000); // every 12 hours
+
+var remainderid = null;
+(function() {
+    var now, to;
+
+    function loop() {
+        now = new Date();
+        to = new Date();
+
+        var day = ["do", "lu", "ma", "me", "gi", "ve", "sa"][now.getDay()];
+        var today = schedule.events.filter(function(el, idx, ar){ 
+                return el.start[0] === day && 
+                        (el.end[1] >= now.getHours() && (!el.end[2] || el.end[2] >= now.getMinutes()))
+            }).sort(function(a,b) {return a.start[1] > b.start[1] || (a.start[1] === b.start[1] && (a.start[2] || 0) > (b.start[2] ||0))});
+        console.log(today);
+
+        if (today.length)
+            channels.forEach(function(el, idx, ar){
+                this.privmsg(el, "Ora in onda: " + today[0].title.replace(/<\/*[^>]*>/g, '') + "\n" +
+                                ( today.length > 1?
+                                    "Alle " + today[1].start[1] + ":" + (today[2].start[2] || '00') + ":" +
+                                    today[1].title.replace(/<\/*[^>]*>/g, '') : ''), true);
+            }, ircconn);
+
+        to.setMinutes(50);
+        to.setSeconds(0);
+        var delay = (to > now? to - now: 3600000 + to.getTime() - now.getTime());
+        console.log("next tick in " + delay + "millisecs");
+        
+        remainderid = setTimeout(loop, delay);
+    }
+
+    loop();
+})();
 
 
 ircconn.connect(function(){
