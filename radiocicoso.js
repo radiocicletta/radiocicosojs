@@ -58,8 +58,10 @@ var cmdhandlers = {
                     var day = ["do", "lu", "ma", "me", "gi", "ve", "sa"][date.getDay()];
                     var today = schedule.events.filter(function(el, idx, ar){ 
                             return el.start[0] === day && 
-                                    (el.start[1] <= date.getHours() && (!el.start[2] || el.start[2] <= date.getMinutes())) &&
-                                    (el.end[1] >= date.getHours() && (!el.end[2] || el.end[2] >= date.getMinutes()))
+                                    (el.start[1] < date.getHours() || 
+                                        (el.start[1] == date.getHours() && !el.start[2] || el.start[2] <= date.getMinutes())) &&
+                                    (el.end[1] >= date.getHours() || 
+                                        (el.end[1] == date.getHours() && !el.end[2] || el.end[2] >= date.getMinutes()));
                         });
                     var msg = "Ora in onda: " + (today.length ? today[0].title.replace(/<\/*[^>]*>/g, ''): "Musica no stop");
                     this.privmsg(respchan, msg);
