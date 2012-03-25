@@ -179,15 +179,15 @@ var remainderid = null;
         var day = ["do", "lu", "ma", "me", "gi", "ve", "sa"][now.getDay()];
         var today = schedule.events.filter(function(el, idx, ar){ 
                 return el.start[0] === day && 
-                        (el.end[1] >= now.getHours() && (!el.end[2] || el.end[2] >= now.getMinutes()))
+                        (el.end[1] > now.getHours() || (el.end[1] === now.getHours() && now.getMinutes() < (el.end[2] | 0)));
             }).sort(function(a,b) {return a.start[1] > b.start[1] || (a.start[1] === b.start[1] && (a.start[2] || 0) > (b.start[2] ||0))});
 
         if (today.length)
             channels.forEach(function(el, idx, ar){
-                this.privmsg(el, "ORA IN ONDA: " + today[0].title.replace(/<\/*[^>]*>/g, '') + "\n" +
+                this.privmsg(el, " \nORA IN ONDA: " + today[0].title.replace(/<\/*[^>]*>/g, '') + "\n" +
                                 ( today.length > 1?
-                                    "ALLE 19" + today[1].start[1] + ":" + (today[2].start[2] || '00')  +
-                                    today[1].title.replace(/<\/*[^>]*>/g, '') : ''), true);
+                                    "ALLE " + today[1].start[1] + "." + (today[2].start[2] || '00') + ": " +
+                                    today[1].title.replace(/<\/*[^>]*>/g, '') + '\n ': ''), true);
             }, ircconn);
 
         to.setMinutes(50);
@@ -213,7 +213,7 @@ var mixcloudid = null;
         
         remainderid = setTimeout(loop, delay);
     }
-})
+})();
 
 
 ircconn.connect(function(){
