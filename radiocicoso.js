@@ -29,7 +29,12 @@ var ircconn = new IRC({
 
 // these handlers are allowed to reply in rooms and/or in query
 var cmdhandlers = {
-    muori   : function(respchan) {  ircconn.disconnect(); clearInterval(scheduleid); clearTimeout(remainderid)},
+    muori   : function(respchan) { 
+                    ircconn.disconnect();
+                    clearInterval(scheduleid);
+                    clearTimeout(remainderid); 
+                    clearTimeout(mixcloudid);
+                },
     help    : function(respchan) { 
                     this.privmsg(respchan, "Per chiedermi qualcosa, usa un comando" +
                             " preceduto da una chiocciola (ad" +
@@ -60,10 +65,11 @@ var cmdhandlers = {
                     var today = schedule.events.filter(function(el, idx, ar){ 
                             return el.start[0] === day && 
                                     (el.start[1] < date.getHours() || 
-                                        (el.start[1] == date.getHours() && !el.start[2] || el.start[2] <= date.getMinutes())) &&
-                                    (el.end[1] >= date.getHours() || 
-                                        (el.end[1] == date.getHours() && !el.end[2] || el.end[2] >= date.getMinutes()));
+                                        (el.start[1] === date.getHours() && (date.getMinutes() > (el.start[2] || 0)))) &&
+                                    (el.end[1] > date.getHours() || 
+                                        (el.end[1] === date.getHours() && (date.getMinutes() < (el.end[2] || 0))));
                         });
+
                     var msg = "Ora in onda: " + (today.length ? today[0].title.replace(/<\/*[^>]*>/g, ''): "Musica no stop");
                     this.privmsg(respchan, msg);
                 },
@@ -161,11 +167,12 @@ function remainderschedule() {
 updateschedule();
 var scheduleid = setInterval(updateschedule, 43200000); // every 12 hours
 
+// Remainder for next scheduled programs - every 60 minutes
 var remainderid = null;
 (function() {
     var now, to;
 
-    function loop() {
+    function loop() { // Y U NO USE setInterval? Because we need a measure of time clock-based
         now = new Date();
         to = new Date();
 
@@ -177,9 +184,9 @@ var remainderid = null;
 
         if (today.length)
             channels.forEach(function(el, idx, ar){
-                this.privmsg(el, "Ora in onda: " + today[0].title.replace(/<\/*[^>]*>/g, '') + "\n" +
+                this.privmsg(el, "ORA IN ONDA: " + today[0].title.replace(/<\/*[^>]*>/g, '') + "\n" +
                                 ( today.length > 1?
-                                    "Alle " + today[1].start[1] + ":" + (today[2].start[2] || '00') + ":" +
+                                    "ALLE 19" + today[1].start[1] + ":" + (today[2].start[2] || '00')  +
                                     today[1].title.replace(/<\/*[^>]*>/g, '') : ''), true);
             }, ircconn);
 
@@ -192,6 +199,21 @@ var remainderid = null;
 
     loop();
 })();
+
+
+// Remainder for mixcloud podcasts - every 120 minutes
+var mixcloudid = null;
+(function(){
+    var now, to;
+
+    function loop() {
+        to.setMinutes(30);
+        to.setSeconds(0);
+        var delay = (to > now? to - now: 7200000 + to.getTime() - now.getTime());
+        
+        remainderid = setTimeout(loop, delay);
+    }
+})
 
 
 ircconn.connect(function(){
