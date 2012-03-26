@@ -18,6 +18,8 @@ var goodguys = ['leonardo', 'cassapanco', 'autoscatto', 'Biappi'];
 var users = {};
 
 var schedule = {events:[]};
+var podcasts = {data:[]};
+var podcastsupdate = new Date();
 var onair    = '';
 
 var ircconn = new IRC({
@@ -186,7 +188,7 @@ var remainderid = null;
             channels.forEach(function(el, idx, ar){
                 this.privmsg(el, " \nORA IN ONDA: " + today[0].title.replace(/<\/*[^>]*>/g, '') + "\n" +
                                 ( today.length > 1?
-                                    "ALLE " + today[1].start[1] + "." + (today[2].start[2] || '00') + ": " +
+                                    "ALLE " + today[1].start[1] + "." + (today[1].start[2] || '00') + ": " +
                                     today[1].title.replace(/<\/*[^>]*>/g, '') + '\n ': ''), true);
             }, ircconn);
 
@@ -207,12 +209,48 @@ var mixcloudid = null;
     var now, to;
 
     function loop() {
+        now = new Date();
+        to = new Date();
+
+        http.get({ host:'api.mixcloud.com', 
+                    port:80, 
+                    path:'/radiocicletta/cloudcasts/?limit=5'},
+                    function(res) {
+                        var rawdata = '';
+                        res.on('data', function(data){ rawdata += data.toString('utf-8'); })
+                            .on('end', function(){ 
+                                podcasts = JSON.parse(rawdata);
+
+                                var newpods = podcasts.data.filter(function(el, idx, ar){ return Date.parse(el.updated_time > podcastsupdate.getTime() ;)});
+
+                                if (!newpods.length)
+                                    return;
+
+                                podcastsupdate = new Date();
+
+                                var msg = ' \nNUOVI PODCAST:\n \n';
+
+                                newpods.forEach(function(el, idx, ar){
+                                    msg += ' • ';
+                                    msg += el.name + '\n   ' + el.url + '\n';
+                                });
+
+                                msg += ' \nL\'elenco completo dei podcast lo trovi su http://www.mixcloud.com' +
+                                        '. Scrivi @podcast per l\'elenco degli ultimi podcast';
+
+                                channels.forEach(function(el, idx, ar){
+                                    this.privmsg(el, msg, true);
+                                }, ircconn);
+                            });
+            });
         to.setMinutes(30);
         to.setSeconds(0);
         var delay = (to > now? to - now: 7200000 + to.getTime() - now.getTime());
         
-        remainderid = setTimeout(loop, delay);
+        mixcloudid = setTimeout(loop, delay);
     }
+
+    loop();
 })();
 
 
