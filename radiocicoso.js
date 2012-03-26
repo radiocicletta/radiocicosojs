@@ -112,6 +112,34 @@ var cmdqueryhandlers = {
                                         " " + el.title.replace(/<\/*[^>]*>/g,'') + "\n";
                         })
                         this.privmsg(respchan, "I programmi di oggi:\n" + todaystr, true);
+                    },
+    podcast     : function(respchan) {
+                        http.get({ host:'api.mixcloud.com', 
+                                    port:80, 
+                                    path:'/radiocicletta/cloudcasts/?limit=5'},
+                                    function(res) {
+                                        var rawdata = '';
+                                        function pod(){
+                                            if (!podcasts.data.length)
+                                                return;
+
+                                            var msg = ' \nUltimi 5 podcast:\n \n';
+
+                                            podcasts.data.forEach(function(el, idx, ar){
+                                                msg += ' • ';
+                                                msg += el.name + '\n   ' + el.url + '\n';
+                                            });
+
+                                            msg += 'L\'elenco completo dei podcast lo trovi su http://www.mixcloud.com/radiocicletta/\n';
+
+                                            ircconn.privmsg(respchan, msg, true);
+                                        }
+                                        if (new Date() - podcastsupdate < 3600000)
+                                            pod();
+                                        else 
+                                        res.on('data', function(data){ rawdata += data.toString('utf-8'); })
+                                            .on('end', function(){ podcasts = JSON.parse(rawdata); pod(); }); 
+                            });
                     }
 }
 
@@ -221,7 +249,7 @@ var mixcloudid = null;
                             .on('end', function(){ 
                                 podcasts = JSON.parse(rawdata);
 
-                                var newpods = podcasts.data.filter(function(el, idx, ar){ return Date.parse(el.updated_time > podcastsupdate.getTime() ;)});
+                                var newpods = podcasts.data.filter(function(el, idx, ar){ return Date.parse(el.updated_time > podcastsupdate.getTime());});
 
                                 if (!newpods.length)
                                     return;
