@@ -40,8 +40,9 @@ var cmdhandlers = {
     help    : function(respchan) { 
                     this.privmsg(respchan, "Per chiedermi qualcosa, usa un comando" +
                             " preceduto da una chiocciola (ad" +
-                            " es. @help). per conoscere tutti i comandi" +
-                            " scrivi @longhelp");
+                            " es. @help). per conoscere la descrizione di tutti i comandi" +
+                            " scrivi @longhelp\nComandi disponibili:" +
+                            " @help @longhelp @cosera @oggi @inonda @ascolto @podcast");
                 },
     cosera  : function(respchan) { 
                 var irc = this;
@@ -81,13 +82,14 @@ var cmdhandlers = {
 // these handlers are allowed to reply only in query
 var cmdqueryhandlers = {
     longhelp    : function(respchan) { 
-                        this.privmsg(respchan, "Lista dei comandi disponibili:\n" +
+                        this.privmsg(respchan, "Lista dei comandi disponibili:\n \n" +
                                 "@help      : mostra il messaggio di aiuto\n" +
                                 "@longhelp  : mostra tutti i comandi disponibili\n" +
                                 "@cosera    : mostra le informazioni sul brano appena passato\n" +
                                 "@oggi      : mostra i programmi in onda oggi in radio\n" +
                                 "@inonda    : mostra il programma ora in onda\n" +
-                                "@ascolto   : come fare per ascoltare radiocicletta", true);
+                                "@ascolto   : come fare per ascoltare radiocicletta\n" +
+                                "@podcast   : elenca gli ultimi 5 podcast\n", true);
                     },
     ascolto     : function(respchan) {
                         this.privmsg(respchan, "Puoi ascoltare radiocicletta in diversi modi:\n" +
@@ -127,7 +129,7 @@ var cmdqueryhandlers = {
 
                                             podcasts.data.forEach(function(el, idx, ar){
                                                 msg += ' • ';
-                                                msg += el.name + '\n   ' + el.url + '\n';
+                                                msg += el.name + '\n   ' + el.url + '\n ';
                                             });
 
                                             msg += 'L\'elenco completo dei podcast lo trovi su http://www.mixcloud.com/radiocicletta/\n';
@@ -260,10 +262,10 @@ var mixcloudid = null;
 
                                 newpods.forEach(function(el, idx, ar){
                                     msg += ' • ';
-                                    msg += el.name + '\n   ' + el.url + '\n';
+                                    msg += el.name + '\n   ' + el.url + '\n ';
                                 });
 
-                                msg += ' \nL\'elenco completo dei podcast lo trovi su http://www.mixcloud.com' +
+                                msg +=  ' \nL\'elenco completo dei podcast lo trovi su http://www.mixcloud.com' +
                                         '. Scrivi @podcast per l\'elenco degli ultimi podcast';
 
                                 channels.forEach(function(el, idx, ar){
