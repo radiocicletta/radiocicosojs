@@ -211,6 +211,7 @@ var remainderid = null;
         var day = ["do", "lu", "ma", "me", "gi", "ve", "sa"][now.getDay()];
         var today = schedule.events.filter(function(el, idx, ar){ 
                 return el.start[0] === day && 
+                        (el.start[1] > now.getHours() || (el.start[1] === now.getHours() && now.getMinutes() > (el.start[2] || 0))) &&
                         (el.end[1] > now.getHours() || (el.end[1] === now.getHours() && now.getMinutes() < (el.end[2] | 0)));
             }).sort(function(a,b) {return a.start[1] > b.start[1] || (a.start[1] === b.start[1] && (a.start[2] || 0) > (b.start[2] ||0))});
 
