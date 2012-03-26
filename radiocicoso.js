@@ -225,7 +225,8 @@ var remainderid = null;
 
         to.setMinutes(50);
         to.setSeconds(0);
-        var delay = (to > now? to - now: 3600000 + to.getTime() - now.getTime());
+        var delay = (to > now? to - now: 3600000 - (now.getTime() - to.getTime()));
+        console.log("delay time: " + delay);
         
         remainderid = setTimeout(loop, delay);
     }
@@ -276,8 +277,9 @@ var mixcloudid = null;
             });
         to.setMinutes(30);
         to.setSeconds(0);
-        var delay = (to > now? to - now: 7200000 + to.getTime() - now.getTime());
+        var delay = (to > now? to - now: 3600000 - (now.getTime() - to.getTime()));
         
+        console.log("delay time: " + delay);
         mixcloudid = setTimeout(loop, delay);
     }
 
