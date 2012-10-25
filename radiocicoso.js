@@ -14,10 +14,10 @@ var http = require('http');
 var IRC = require('irc-js');
 
 var channels = ['#radiocicletta'/*, '#other'*/];
-var goodguys = ['leonardo', 'cassapanco', 'autoscatto', 'Biappi'];
+var goodguys = ['leonardo', 'cassapanco', 'autoscatto', 'Biappi', 'ineff'];
 var users = {};
 
-var schedule = {events:[]};
+var schedule = {programmi:[],adesso:{}};
 var podcasts = {data:[]};
 var podcastsupdate = new Date();
 var onair    = '';
@@ -31,12 +31,6 @@ var ircconn = new IRC({
 
 // these handlers are allowed to reply in rooms and/or in query
 var cmdhandlers = {
-    muori   : function(respchan) { 
-                    ircconn.disconnect();
-                    clearInterval(scheduleid);
-                    clearTimeout(remainderid); 
-                    clearTimeout(mixcloudid);
-                },
     help    : function(respchan) { 
                     this.privmsg(respchan, "Per chiedermi qualcosa, usa un comando" +
                             " preceduto da una chiocciola (ad" +
@@ -46,7 +40,10 @@ var cmdhandlers = {
                 },
     cosera  : function(respchan) { 
                 var irc = this;
-                http.get({ host:'www.radiocicletta.it', 
+
+	        var mountpoints = ["/stream","/studio","/live"];
+
+                http.get({ host:'api.radiocicletta.it', 
                             port:8000, 
                             path:'/json.xsl'}, function(res) {
                                 var rawdata = "";
@@ -54,18 +51,29 @@ var cmdhandlers = {
                                    .on('end', function(){
                                         var json = JSON.parse(rawdata);
                                         var music = "Unknown - unknown";
-                                        if (json["/stream"])
-                                            music = json["/stream"].artist + " - " + json["/stream"].title;
-                                        else if (json["/studio"])
-                                            music = json["/studio"].artist + " - " + json["/studio"].title;
+					// We look for the first mountpoint from which someone is streaming
+					var i = 0;
+					for (; (i < mountpoints.length) && ! (mountpoints[i] in json);i++ )
+					    ;
+					if( i < 3 ) //If someone is streaming
+					    {
+						var mountpoint = mountpoints[i];
+						if (json[mountpoint].title !== "" && json[mountpoint].title !== "Unknown")
+						    if(json[mountpoint].artist !== "" && json[mountpoint].artist !== "Unknown")
+							music = json[mountpoint].artist + " - " + json[mountpoint].title;
+						    else
+							music = json[mountpoint].title;
+					    }
+
                                         irc.privmsg(respchan, music); 
+
                                     });
                     });
                 },
     inonda  : function(respchan) {
                     var date = new Date();
                     var day = ["do", "lu", "ma", "me", "gi", "ve", "sa"][date.getDay()];
-                    var today = schedule.events.filter(function(el, idx, ar){ 
+                    var today = schedule.programmi.filter(function(el, idx, ar){ 
                             return el.start[0] === day && 
                                     (el.start[1] < date.getHours() || 
                                         (el.start[1] === date.getHours() && (date.getMinutes() > (el.start[2] || 0)))) &&
@@ -91,22 +99,36 @@ var cmdqueryhandlers = {
                                 "@ascolto   : come fare per ascoltare radiocicletta\n" +
                                 "@podcast   : elenca gli ultimi 5 podcast\n", true);
                     },
+    //Let's allows just to the goodguys to kill radiocicoso
+    muori   : function(respchan){
+	           for(var i = 0;i < goodguys.length; i++)
+		       if(respchan === goodguys[i])			   
+	               {	
+			   ircconn.disconnect();
+			   clearInterval(scheduleid);
+			   clearTimeout(remainderid); 
+			   clearTimeout(mixcloudid);	
+		       }
+                },
     ascolto     : function(respchan) {
                         this.privmsg(respchan, "Puoi ascoltare radiocicletta in diversi modi:\n" +
                                 "• Dal tuo browser, collegandoti al sito " +
                                 "http://www.radiocicletta.it e usando il player del sito\n" +
                                 "• Usando il tuo programma preferito (VLC, iTunes, RealPlayer...) " +
                                 "inserendo nella playlist l'indirizzo " +
-                                "http://www.radiociclcetta.it:8000/stream\n" +
-                                "• Se hai problemi di connessione o sei connesso " +
-                                "attraverso una rete con proxy, puoi usare l'indirizzo " +
-                                "http://www.radiociclcetta.it/snd/stream", true);
+                                "http://www.radiociclcetta.it:8000/listen.pls\n", true);
                     },
     oggi        : function(respchan) {
                         var day = ["do", "lu", "ma", "me", "gi", "ve", "sa"][new Date().getDay()];
-                        var today = schedule.events.filter(function(el, idx, ar){ return el.start[0] === day});
-                        today.sort(function(a,b){return a.start[0] < b.start[0]});
-
+                        var today = schedule.programmi.filter(function(el, idx, ar){ return el.start[0] === day});
+                        today.sort(function(a,b){
+				       if (a.start[1] < b.start[1])
+					   return false;
+				       else if ( a.start[1] > b.start[1] || a.start[2] > b.start[2] )
+				           return true;
+				       else 
+					   return false;
+				   });
                         var todaystr = "";
                         today.forEach(function(el, idx, ar){
                             todaystr += el.start[1] + ":" + 
@@ -209,7 +231,7 @@ var remainderid = null;
         to = new Date();
 
         var day = ["do", "lu", "ma", "me", "gi", "ve", "sa"][now.getDay()];
-        var today = schedule.events.filter(function(el, idx, ar){ 
+        var today = schedule.programmi.filter(function(el, idx, ar){ 
                 return el.start[0] === day && 
                         (el.start[1] === (now.getHours() + 1) || (el.start[1] === now.getHours() && now.getMinutes() > (el.start[2] || 0)));/* &&
                         (el.end[1] > now.getHours() || (el.end[1] === now.getHours() && now.getMinutes() > (el.end[2] | 0)));*/
