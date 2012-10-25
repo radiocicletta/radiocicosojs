@@ -41,7 +41,7 @@ var cmdhandlers = {
     cosera  : function(respchan) { 
                 var irc = this;
 
-	        var mountpoints = ["/stream","/studio","/live"];
+            var mountpoints = ["/stream","/studio","/live"];
 
                 http.get({ host:'api.radiocicletta.it', 
                             port:8000, 
@@ -51,19 +51,19 @@ var cmdhandlers = {
                                    .on('end', function(){
                                         var json = JSON.parse(rawdata);
                                         var music = "Unknown - unknown";
-					// We look for the first mountpoint from which someone is streaming
-					var i = 0;
-					for (; (i < mountpoints.length) && ! (mountpoints[i] in json);i++ )
-					    ;
-					if( i < 3 ) //If someone is streaming
-					    {
-						var mountpoint = mountpoints[i];
-						if (json[mountpoint].title !== "" && json[mountpoint].title !== "Unknown")
-						    if(json[mountpoint].artist !== "" && json[mountpoint].artist !== "Unknown")
-							music = json[mountpoint].artist + " - " + json[mountpoint].title;
-						    else
-							music = json[mountpoint].title;
-					    }
+                    // We look for the first mountpoint from which someone is streaming
+                    var i = 0;
+                    for (; (i < mountpoints.length) && ! (mountpoints[i] in json);i++ )
+                        ;
+                    if( i < 3 ) //If someone is streaming
+                        {
+                        var mountpoint = mountpoints[i];
+                        if (json[mountpoint].title !== "" && json[mountpoint].title !== "Unknown")
+                            if(json[mountpoint].artist !== "" && json[mountpoint].artist !== "Unknown")
+                            music = json[mountpoint].artist + " - " + json[mountpoint].title;
+                            else
+                            music = json[mountpoint].title;
+                        }
 
                                         irc.privmsg(respchan, music); 
 
@@ -100,16 +100,14 @@ var cmdqueryhandlers = {
                                 "@podcast   : elenca gli ultimi 5 podcast\n", true);
                     },
     //Let's allows just to the goodguys to kill radiocicoso
-    muori   : function(respchan){
-	           for(var i = 0;i < goodguys.length; i++)
-		       if(respchan === goodguys[i])			   
-	               {	
-			   ircconn.disconnect();
-			   clearInterval(scheduleid);
-			   clearTimeout(remainderid); 
-			   clearTimeout(mixcloudid);	
-		       }
-                },
+    muori       : function(respchan){
+                        if(goodguys.indexOf(respchan) >= 0) {    
+                            ircconn.disconnect();
+                            clearInterval(scheduleid);
+                            clearTimeout(remainderid); 
+                            clearTimeout(mixcloudid);    
+                        }
+                    },
     ascolto     : function(respchan) {
                         this.privmsg(respchan, "Puoi ascoltare radiocicletta in diversi modi:\n" +
                                 "• Dal tuo browser, collegandoti al sito " +
@@ -120,21 +118,20 @@ var cmdqueryhandlers = {
                     },
     oggi        : function(respchan) {
                         var day = ["do", "lu", "ma", "me", "gi", "ve", "sa"][new Date().getDay()];
-                        var today = schedule.programmi.filter(function(el, idx, ar){ return el.start[0] === day});
+                        var today = schedule.programmi.filter(function(el, idx, ar){ return el.start[0] === day;});
                         today.sort(function(a,b){
-				       if (a.start[1] < b.start[1])
-					   return false;
-				       else if ( a.start[1] > b.start[1] || a.start[2] > b.start[2] )
-				           return true;
-				       else 
-					   return false;
-				   });
+                            if (a.start[1] < b.start[1])
+                                return false;
+                            if ( a.start[1] > b.start[1] || a.start[2] > b.start[2] )
+                                return true;
+                            return false;
+                        });
                         var todaystr = "";
                         today.forEach(function(el, idx, ar){
                             todaystr += el.start[1] + ":" + 
                                         (el.start[2]? el.start[2]: "00") + 
                                         " " + el.title.replace(/<\/*[^>]*>/g,'') + "\n";
-                        })
+                        });
                         this.privmsg(respchan, "I programmi di oggi:\n" + todaystr, true);
                     },
     podcast     : function(respchan) {
@@ -165,7 +162,7 @@ var cmdqueryhandlers = {
                                             .on('end', function(){ podcasts = JSON.parse(rawdata); pod(); }); 
                             });
                     }
-}
+};
 
 
 ircconn.on('privmsg', function(data){
@@ -195,7 +192,7 @@ ircconn.on('privmsg', function(data){
                 respchan = data.person.nick;
                 cmdqueryhandlers[argv[0]].apply(this, [respchan].concat(argv.slice(1)));
             }
-        } catch(e) {console.log(e)};
+        } catch(e) {console.log(e); }
 
     }, ircconn);
 
@@ -210,6 +207,9 @@ function updateschedule() {
             res.on('data', function(data){ rawdata += data.toString('utf-8'); })
                 .on('end', function(){
                     schedule = JSON.parse(rawdata);
+                    schedule.programmi = schedule.programmi.filter(function(el, idx, ar){
+                        return el.stato == 1;
+                    });
                 });
         });
 }
@@ -235,7 +235,7 @@ var remainderid = null;
                 return el.start[0] === day && 
                         (el.start[1] === (now.getHours() + 1) || (el.start[1] === now.getHours() && now.getMinutes() > (el.start[2] || 0)));/* &&
                         (el.end[1] > now.getHours() || (el.end[1] === now.getHours() && now.getMinutes() > (el.end[2] | 0)));*/
-            }).sort(function(a,b) {return a.start[1] > b.start[1] || (a.start[1] === b.start[1] && (a.start[2] || 0) > (b.start[2] ||0))});
+            }).sort(function(a,b) {return a.start[1] > b.start[1] || (a.start[1] === b.start[1] && (a.start[2] || 0) > (b.start[2] ||0)); });
 
         if (today.length)
             channels.forEach(function(el, idx, ar){
