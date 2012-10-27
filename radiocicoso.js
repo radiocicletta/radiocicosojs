@@ -114,7 +114,7 @@ var cmdqueryhandlers = {
                                 "http://www.radiocicletta.it e usando il player del sito\n" +
                                 "• Usando il tuo programma preferito (VLC, iTunes, RealPlayer...) " +
                                 "inserendo nella playlist l'indirizzo " +
-                                "http://www.radiociclcetta.it:8000/listen.pls\n", true);
+                                "http://www.radiociclcetta.it/listen.pls\n", true);
                     },
     oggi        : function(respchan) {
                         var day = ["do", "lu", "ma", "me", "gi", "ve", "sa"][new Date().getDay()];
