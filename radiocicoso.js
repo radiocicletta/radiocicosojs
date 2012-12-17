@@ -6,7 +6,7 @@
  * npm install irc-js
  */
 
-const kIRCNickName      = 'radiocicosojs';
+const kIRCNickName      = 'radiocicosojsdev';
 const kIRCServerHost    = 'irc.freenode.net';
 const kIRCServerPort    = 6667;
 
@@ -231,11 +231,24 @@ var remainderid = null;
         to = new Date();
 
         var day = ["do", "lu", "ma", "me", "gi", "ve", "sa"][now.getDay()];
+        var dayafter = ["do", "lu", "ma", "me", "gi", "ve", "sa"][now.getDay()+1];
         var today = schedule.programmi.filter(function(el, idx, ar){ 
-                return el.start[0] === day && 
-                        (el.start[1] === (now.getHours() + 1) || (el.start[1] === now.getHours() && now.getMinutes() > (el.start[2] || 0)));/* &&
-                        (el.end[1] > now.getHours() || (el.end[1] === now.getHours() && now.getMinutes() > (el.end[2] | 0)));*/
+                return el.start[0] === day && //Let's filter from the list all programs which are going to be streamed today.......
+                           // ....and that aren't ended yet
+                        (!(el.end[1] < now.getHours() || (el.end[1] === now.getHours() && el.end[2] < now.getMinutes())) || 
+                           (el.end[1] === 0 && el.end[2] === 0));//even those that end at midnight
             }).sort(function(a,b) {return a.start[1] > b.start[1] || (a.start[1] === b.start[1] && (a.start[2] || 0) > (b.start[2] ||0)); });
+
+        var tomorrow = schedule.programmi.filter(function(el, idx, ar){
+               return el.start[0] === dayafter;
+        }).sort(function(a,b){ return a.start[1] > b.start[1] || a.start[1] === b.start[1] && a.start[2] > b.start[2];  });
+
+	if(tomorrow.length){ //If updateschedule has already downloaded the list of program (so tomorrow isn't empty)
+                      // we add to today's programs' list the programs that start at midnight
+               today.push(tomorrow[0]);
+               today.push(tomorrow[1]);
+        }
+
 
         if (today.length)
             channels.forEach(function(el, idx, ar){
