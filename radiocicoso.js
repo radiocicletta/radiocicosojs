@@ -6,7 +6,7 @@
  * npm install irc-js
  */
 
-const kIRCNickName      = 'radiocicosojsdev';
+const kIRCNickName      = 'radiocicosojs';
 const kIRCServerHost    = 'irc.freenode.net';
 const kIRCServerPort    = 6667;
 
