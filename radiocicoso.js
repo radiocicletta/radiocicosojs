@@ -206,10 +206,12 @@ function updateschedule() {
             var rawdata = '';
             res.on('data', function(data){ rawdata += data.toString('utf-8'); })
                 .on('end', function(){
-                    schedule = JSON.parse(rawdata);
-                    schedule.programmi = schedule.programmi.filter(function(el, idx, ar){
-                        return el.stato == 1;
-                    });
+                      if(rawdata){ //If effectively it has downloaded the list of programs
+                        schedule = JSON.parse(rawdata);
+                        schedule.programmi = schedule.programmi.filter(function(el, idx, ar){
+                           return el.stato == 1;
+                        });
+                      }//otherwise leave schedule non updated, avoiding crashes.
                 });
         });
 }
@@ -250,7 +252,7 @@ var remainderid = null;
         }
 
 
-        if (today.length)
+        if (today.length && (now.getHours > 16 || now.getHours < 4 ))
             channels.forEach(function(el, idx, ar){
                 this.privmsg(el, " \nORA IN ONDA: " + today[0].title.replace(/<\/*[^>]*>/g, '') + "\n" +
                                 ( today.length > 1?
