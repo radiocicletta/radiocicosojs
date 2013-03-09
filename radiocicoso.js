@@ -206,7 +206,7 @@ function updateschedule() {
             var rawdata = '';
             res.on('data', function(data){ rawdata += data.toString('utf-8'); })
                 .on('end', function(){
-                      if(rawdata){ //If effectively it has downloaded the list of programs
+                      if(rawdata !== '' ){ //If effectively it has downloaded the list of programs
                         schedule = JSON.parse(rawdata);
                         schedule.programmi = schedule.programmi.filter(function(el, idx, ar){
                            return el.stato == 1;
@@ -252,7 +252,7 @@ var remainderid = null;
         }
 
 
-        if (today.length && (now.getHours > 16 || now.getHours < 4 ))
+        if (today.length && (now.getHours() > 16 || now.getHours() < 4 ))
             channels.forEach(function(el, idx, ar){
                 this.privmsg(el, " \nORA IN ONDA: " + today[0].title.replace(/<\/*[^>]*>/g, '') + "\n" +
                                 ( today.length > 1?
