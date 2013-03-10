@@ -29,6 +29,10 @@ var ircconn = new IRC({
     log: false
 });
 
+var mountpoints = ["/stream","/studio","/live"];
+
+
+
 // these handlers are allowed to reply in rooms and/or in query
 var cmdhandlers = {
     help    : function(respchan) { 
@@ -40,8 +44,6 @@ var cmdhandlers = {
                 },
     cosera  : function(respchan) { 
                 var irc = this;
-
-            var mountpoints = ["/stream","/studio","/live"];
 
                 http.get({ host:'api.radiocicletta.it', 
                             port:8000, 
@@ -98,6 +100,13 @@ var cmdqueryhandlers = {
                                 "@inonda    : mostra il programma ora in onda\n" +
                                 "@ascolto   : come fare per ascoltare radiocicletta\n" +
                                 "@podcast   : elenca gli ultimi 5 podcast\n", true);
+                    },
+    switchmounts:function(respchan){ //function which allows to goodguys to switch between the possibile mountpoints
+                                     //useful in case of problems with icecast streaming metadata.
+	                if(goodguys.indexOf(respchan) >= 0) {
+                            mountpoints.push(mountpoints[0]);
+                            mountpoints.shift();
+                        } 
                     },
     //Let's allows just to the goodguys to kill radiocicoso
     muori       : function(respchan){
