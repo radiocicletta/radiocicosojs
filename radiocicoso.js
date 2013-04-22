@@ -6,6 +6,8 @@
  * npm install irc-js
  */
 
+const version           = '3.0'
+
 const kIRCNickName      = 'radiocicosojs';
 const kIRCServerHost    = 'irc.freenode.net';
 const kIRCServerPort    = 6667;
@@ -86,7 +88,10 @@ var cmdhandlers = {
                     var msg = "Ora in onda: " + (today.length ? today[0].title.replace(/<\/*[^>]*>/g, ''): "Musica no stop");
                     this.privmsg(respchan, msg);
                 },
-    dillo   : function(respchan) {}
+    dillo   : function(respchan) {},
+    cheschifo: function(respchan){
+                    this.privmsg(respchan,"Che schifo vedi che hai fatto\nwww.redtube.com/8077\n");
+                }
 };
 
 // these handlers are allowed to reply only in query
@@ -170,7 +175,10 @@ var cmdqueryhandlers = {
                                         res.on('data', function(data){ rawdata += data.toString('utf-8'); })
                                             .on('end', function(){ podcasts = JSON.parse(rawdata); pod(); }); 
                             });
-                    }
+                    },
+     version    : function(respchan) {
+	              this.privmsg(respchan, "radiocicosojs version " + version + "\n");
+     }
 };
 
 
