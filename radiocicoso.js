@@ -90,7 +90,7 @@ var cmdhandlers = {
                 },
     dillo   : function(respchan) {},
     cheschifo: function(respchan){
-                    this.privmsg(respchan,"Che schifo vedi che hai fatto\nwww.redtube.com/8077\n");
+                    this.privmsg(respchan,"Vedi che hai fatto\n");
                 }
 };
 
@@ -162,7 +162,7 @@ var cmdqueryhandlers = {
 
                                             podcasts.data.forEach(function(el, idx, ar){
                                                 msg += ' • ';
-                                                msg += el.name + '\n   ' + el.url + '\n ';
+                                                msg += el.name + '\n   ' + el.url + '\n';
                                             });
 
                                             msg += 'L\'elenco completo dei podcast lo trovi su http://www.mixcloud.com/radiocicletta/\n';
@@ -307,7 +307,7 @@ var mixcloudid = null;
                             .on('end', function(){ 
                                 podcasts = JSON.parse(rawdata);
 
-                                var newpods = podcasts.data.filter(function(el, idx, ar){ return Date.parse(el.updated_time > podcastsupdate.getTime());});
+                                var newpods = podcasts.data.filter(function(el, idx, ar){ return Date.parse(el.updated_time) > podcastsupdate.getTime();});
 
                                 if (!newpods.length)
                                     return;
@@ -321,7 +321,7 @@ var mixcloudid = null;
                                     msg += el.name + '\n   ' + el.url + '\n ';
                                 });
 
-                                msg +=  ' \nL\'elenco completo dei podcast lo trovi su http://www.mixcloud.com' +
+                                msg +=  ' \n\nL\'elenco completo dei podcast lo trovi su http://www.mixcloud.com' +
                                         '. Scrivi @podcast per l\'elenco degli ultimi podcast';
 
                                 channels.forEach(function(el, idx, ar){
